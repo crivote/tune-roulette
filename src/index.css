@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Lexend', sans-serif;
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-terminal-black text-terminal-white overflow-x-hidden;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hide Scrollbar */
+::-webkit-scrollbar {
+  display: none;
+}
+
+body {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Global Animations */
+@keyframes grows {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-grows {
+  animation: grows 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes flap {
+  0% {
+    transform: rotateX(0deg);
+  }
+
+  50% {
+    transform: rotateX(-90deg);
+    background: #333;
+  }
+
+  100% {
+    transform: rotateX(0deg);
+  }
+}
+
+.animate-flap {
+  animation: flap 0.1s infinite;
+}
+
+.flight-board-char {
+  @apply flex items-center justify-center rounded-sm font-mono text-lg sm:text-xl w-[12px] sm:w-[14px] h-7 sm:h-9 border border-white/5 relative overflow-hidden flex-shrink-0;
+  background-color: #101616;
+  color: var(--char-color, #ffd700);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 0px rgba(255, 255, 255, 0.03);
+  text-shadow: 0 0 8px var(--char-shadow, rgba(255, 215, 0, 0.6)), 0 0 12px var(--char-shadow, rgba(255, 215, 0, 0.3));
+}
+
+.char-space {
+  width: 6px !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+.char-space::after {
+  display: none !important;
+}
+
+.variant-eggshell {
+  --char-color: #f0ead6;
+  --char-shadow: rgba(240, 234, 214, 1);
+}
+
+.flight-board-char::after {
+  content: "";
+  @apply absolute top-1/2 left-0 w-full h-[1px] bg-black/60 z-10;
+  box-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.05);
+}
+
+@keyframes grow-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-grow-in {
+  animation: grow-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.glass-panel {
+  @apply bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl;
+}
+
+.btn-terminal {
+  @apply bg-terminal-gold text-black px-10 py-4 rounded-full font-black text-xl transition-all shadow-terminal hover:scale-105 active:scale-95 hover:shadow-terminal-hover;
+}
+
+.btn-outline-terminal {
+  @apply border-2 border-terminal-gold/30 text-terminal-gold px-10 py-4 rounded-full font-black text-xl hover:bg-terminal-gold/10 transition-all flex items-center gap-3;
+}
