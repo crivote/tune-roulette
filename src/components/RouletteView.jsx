@@ -1,373 +1,169 @@
-import { createSignal, Show, For, createEffect, onCleanup } from 'solid-js';
+import { createSignal, Show, For, createMemo } from 'solid-js';
 import { useRouletteStore } from '../store/rouletteStore';
 import AudioPlayer from './AudioPlayer';
 
-const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -'";
+function PopularityBadge(props) {
+    const config = [
+        { label: 'Very Popular', class: 'bg-brand-green/20 text-brand-green-dark border-brand-green/30' },
+        { label: 'Common', class: 'bg-blue-50 text-blue-600 border-blue-100' },
+        { label: 'Rare', class: 'bg-amber-50 text-amber-600 border-amber-100' },
+        { label: 'Obscure', class: 'bg-gray-100 text-gray-600 border-gray-200' }
+    ];
 
-const TUNE_TYPE_MAP = {
-    'hornpipe': 'HRNP',
-    'reel': 'REEL',
-    'jig': 'JIG',
-    'slip jig': 'SLPJ',
-    'polka': 'POLK',
-    'mazurka': 'MZKA',
-    'strathspey': 'STRH',
-    'barn dance': 'BARN',
-    'waltz': 'WALZ',
-    'slide': 'SLID',
-    'carol': 'CARL',
-    'march': 'MRCH',
-    'flings': 'FLNG'
-};
-
-const KEY_MODE_MAP = {
-    'major': 'MAJ',
-    'minor': 'MIN',
-    'mixolydian': 'MIX',
-    'dorian': 'DOR',
-    'aeolian': 'AEO',
-    'phrygian': 'PHR',
-    'lydian': 'LYD'
-};
-
-function contractTuneType(type) {
-    if (!type) return '----';
-    const lowerType = type.toLowerCase();
-    return TUNE_TYPE_MAP[lowerType] || type.substring(0, 4).toUpperCase();
-}
-
-function contractKey(keyStr) {
-    if (!keyStr) return '----';
-    let contracted = keyStr;
-    Object.entries(KEY_MODE_MAP).forEach(([full, short]) => {
-        contracted = contracted.replace(full, short);
-    });
-    // Ensure one space between note and mode
-    return contracted.trim().replace(/\s+/g, ' ');
-}
-
-function FlightBoardChar(props) {
-    const [char, setChar] = createSignal(' ');
-
-    createEffect(() => {
-        if (props.isSpinning) {
-            const interval = setInterval(() => {
-                setChar(CHARS[Math.floor(Math.random() * CHARS.length)]);
-            }, 100);
-            onCleanup(() => clearInterval(interval));
-        } else {
-            setChar(props.targetChar || ' ');
-        }
-    });
+    const tier = () => props.tier ?? 0;
 
     return (
-        <div
-            class={`flight-board-char ${props.isSpinning ? 'animate-flap' : ''} ${props.variant === 'eggshell' ? 'variant-eggshell' : ''} ${props.targetChar === ' ' && !props.isSpinning ? 'char-space' : ''}`}
-        >
-            {char()}
-        </div>
+        <span class={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${config[tier()].class}`}>
+            {config[tier()].label}
+        </span>
     );
 }
 
-function FlightBoardLine(props) {
-    const formatValue = (val, len) => {
-        const raw = (val || '').toString().toUpperCase();
-        if (raw.length > len) {
-            return raw.substring(0, len - 3) + '...';
-        }
-        return raw.padEnd(len, ' ');
-    };
+function TuneListItem(props) {
+    const { getTuneTier, moveTuneInLastSet, removeFromLastSet } = useRouletteStore();
+    const tier = createMemo(() => getTuneTier(props.tune));
 
     return (
-        <div
-            class={`grid grid-cols-[32px_54px_1fr_54px_54px] sm:grid-cols-[40px_60px_1fr_60px_60px] gap-2 sm:gap-8 lg:gap-12 items-center w-full px-2 sm:px-6 lg:px-12 py-1 whitespace-nowrap overflow-hidden transition-colors group ${props.onClick ? 'cursor-pointer hover:bg-terminal-eggshell/5' : ''}`}
-            title={props.text && props.text.length > 35 ? props.text : undefined}
-            onClick={props.onClick}
-        >
-            {/* Audio Control Lead / Special Icon */}
-            <div class="size-10 flex items-center justify-start relative">
-                <Show when={props.isPlusIcon} fallback={
-                    <>
-                        <Show when={props.tune && !props.isSpinning}>
-                            {/* Removal Button (Visible on Hover - to the right of play) */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    props.onRemove?.();
-                                }}
-                                class="absolute left-12 opacity-0 group-hover:opacity-100 transition-opacity size-8 flex items-center justify-center rounded-full bg-red-600 text-black shadow-lg hover:bg-red-500 hover:scale-110 active:scale-90 z-20"
-                                title="Remove Line"
-                            >
-                                <span class="material-symbols-outlined text-lg font-black">close</span>
-                            </button>
+        <div class="group flex items-center gap-6 p-4 rounded-3xl border border-transparent hover:border-ui-border hover:bg-ui-surface transition-all animate__animated animate__fadeInUp">
+            {/* Play Button */}
+            <div class="flex-shrink-0">
+                <AudioPlayer
+                    abc={props.tune.abc}
+                    tuneKey={props.tune.key}
+                    tuneType={props.tune.type}
+                    isPlaying={props.isPlaying}
+                    onToggle={props.onPlayToggle}
+                    variant="compact"
+                />
+            </div>
 
-                            <AudioPlayer
-                                abc={props.tune.abc}
-                                tuneKey={props.tune.key}
-                                tuneType={props.tune.type}
-                                isPlaying={props.isPlaying}
-                                onToggle={props.onPlayToggle}
-                                minimal={true}
-                            />
-                        </Show>
-
-                        <Show when={!props.tune && !props.isSpinning}>
-                            <div class="size-2 ml-3 rounded-full bg-terminal-dim/20"></div>
-                        </Show>
-                        <Show when={props.isSpinning}>
-                            <div class="size-4 ml-2 animate-spin border-2 border-terminal-gold/30 border-t-terminal-gold rounded-full"></div>
-                        </Show>
-                    </>
-                }>
-                    <div class="size-6 ml-1 flex items-center justify-center rounded-full border border-terminal-eggshell/40 text-terminal-eggshell/60 hover:border-terminal-eggshell hover:text-terminal-eggshell transition-all shadow-[0_0_10px_rgba(240,234,214,0.2)]">
-                        <span class="material-symbols-outlined text-sm font-bold">add</span>
+            {/* Title & Metadata */}
+            <div class="flex-grow flex flex-col md:flex-row md:items-center gap-2 md:gap-6 overflow-hidden">
+                <div class="flex flex-col min-w-0 flex-grow">
+                    <h4 class="text-lg font-bold text-ui-text truncate">
+                        <a
+                            href={`https://thesession.org/tunes/${props.tune.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="hover:text-brand-green-dark transition-colors flex items-center gap-2 group/link"
+                        >
+                            {props.tune.name}
+                            <span class="material-symbols-rounded text-base opacity-0 group-hover/link:opacity-100 transition-opacity translate-y-[1px]">open_in_new</span>
+                        </a>
+                    </h4>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-ui-text/40 uppercase tracking-widest whitespace-nowrap">
+                            {props.tune.type} • {props.tune.key}
+                        </span>
                     </div>
-                </Show>
+                </div>
+
+                <div class="flex-shrink-0 flex flex-col items-end gap-1">
+                    <PopularityBadge tier={tier()} />
+                    <span class="text-[9px] font-black text-ui-text-muted/40 uppercase tracking-widest">
+                        #{props.tune.globalRank || '????'} // {props.tune.tunebooks || 0} books
+                    </span>
+                </div>
             </div>
 
-            {/* Rank Column */}
-            <div class="flex gap-[1px] justify-start">
-                <For each={formatValue(props.rank, 4).split('').slice(0, 4)}>
-                    {(char) => <FlightBoardChar targetChar={char} isSpinning={props.isSpinning} variant={props.variant} />}
-                </For>
-            </div>
-
-            {/* Destination Column */}
-            <div class="flex gap-[1px] justify-start overflow-hidden relative group/title">
-                <For each={formatValue(props.text, 35).split('').slice(0, 35)}>
-                    {(char) => <FlightBoardChar targetChar={char} isSpinning={props.isSpinning} variant={props.variant} />}
-                </For>
-
-                {/* External Link to The Session (Visible on Hover) */}
-                <Show when={props.tune && !props.isSpinning}>
-                    <a
-                        href={`https://thesession.org/tunes/${props.tune.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="ml-4 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center size-8 rounded-full border border-terminal-gold/20 text-terminal-gold/60 hover:bg-terminal-gold/10 hover:text-terminal-gold z-20"
-                        title="View on The Session"
-                        onClick={(e) => e.stopPropagation()}
+            {/* Actions */}
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex flex-col gap-1">
+                    <button
+                        onClick={() => moveTuneInLastSet(props.index, -1)}
+                        class="size-8 rounded-lg hover:bg-ui-bg flex items-center justify-center text-ui-text-muted hover:text-ui-text transition-colors"
+                        title="Move Up"
+                        disabled={props.index === 0}
                     >
-                        <span class="material-symbols-outlined text-[18px]">open_in_new</span>
-                    </a>
-                </Show>
-            </div>
+                        <span class="material-symbols-rounded text-lg">keyboard_arrow_up</span>
+                    </button>
+                    <button
+                        onClick={() => moveTuneInLastSet(props.index, 1)}
+                        class="size-8 rounded-lg hover:bg-ui-bg flex items-center justify-center text-ui-text-muted hover:text-ui-text transition-colors"
+                        title="Move Down"
+                        disabled={props.isLast}
+                    >
+                        <span class="material-symbols-rounded text-lg">keyboard_arrow_down</span>
+                    </button>
+                </div>
 
-            {/* Type Column */}
-            <div class="flex gap-[1px] justify-start">
-                <For each={formatValue(props.type, 4).split('').slice(0, 4)}>
-                    {(char) => <FlightBoardChar targetChar={char} isSpinning={props.isSpinning} variant={props.variant} />}
-                </For>
-            </div>
+                <div class="h-8 w-px bg-ui-border mx-1"></div>
 
-            {/* Gate Column */}
-            <div class="flex gap-[1px] justify-start">
-                <For each={formatValue(props.key, 4).split('').slice(0, 4)}>
-                    {(char) => <FlightBoardChar targetChar={char} isSpinning={props.isSpinning} variant={props.variant} />}
-                </For>
+                <button
+                    onClick={() => removeFromLastSet(props.tune.id)}
+                    class="size-10 rounded-full hover:bg-red-50 flex items-center justify-center text-ui-text-muted hover:text-red-500 transition-all"
+                    title="Remove from Set"
+                >
+                    <span class="material-symbols-rounded text-xl">delete</span>
+                </button>
             </div>
-        </div>
-    );
-}
-
-function FlightBoardHeaderLabel(props) {
-    return (
-        <div class={`flex items-end pb-1 ${props.className || 'justify-start'}`}>
-            <span class="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-[0.1em] sm:tracking-[0.2em] select-none [text-shadow:0_0_8px_rgba(255,255,255,0.6)] font-sans">
-                {props.label}
-            </span>
         </div>
     );
 }
 
 function RouletteView() {
-    const { isSpinning, lastDrawnSet, resetDraw, setIsDispatcherOpen, currentSet, removeFromSet, removeFromLastSet, playClickSound, drawOneMore } = useRouletteStore();
+    const { isSpinning, lastDrawnSet, drawOneMore, resetDraw } = useRouletteStore();
     const [playingId, setPlayingId] = createSignal(null);
-    const [settledCount, setSettledCount] = createSignal(0);
-
-    // Mechanical Sound Loop
-    createEffect(() => {
-        if (isSpinning()) {
-            const audioInterval = setInterval(() => {
-                playClickSound();
-            }, 100);
-            onCleanup(() => clearInterval(audioInterval));
-        }
-    });
-
-    // Reset playing state if set is cleared
-    createEffect(() => {
-        if (lastDrawnSet().length === 0) {
-            setPlayingId(null);
-        }
-    });
-
-    // Precise Staggered Reveal Logic
-    createEffect(() => {
-        const setLength = lastDrawnSet().length;
-        if (isSpinning() && setLength > 0) {
-            // Check if this is a fresh set (size 3) or an expansion
-            if (setLength === 3 && settledCount() !== 0) {
-                // Fresh dispatch: Reset and sequence 1-3
-                setSettledCount(0);
-                const t1 = setTimeout(() => setSettledCount(1), 1500);
-                const t2 = setTimeout(() => setSettledCount(2), 2500);
-                const t3 = setTimeout(() => setSettledCount(3), 3500);
-                onCleanup(() => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); });
-            } else if (setLength > 3 && settledCount() < setLength) {
-                // Expanding Dispatch: We are adding row 'setLength'
-                // Row setLength-1 is already settled (settledCount was at least setLength-1)
-                const t = setTimeout(() => setSettledCount(setLength), 1500);
-                onCleanup(() => clearTimeout(t));
-            }
-        } else if (!isSpinning()) {
-            // When terminal shuts down, sync settledCount to total rows
-            setSettledCount(setLength);
-        }
-    });
-
-    const handleOpenDispatcher = () => {
-        setPlayingId(null);
-        setIsDispatcherOpen(true);
-    };
-
-    const historyLines = () => {
-        const set = [...currentSet()].reverse();
-        return set.slice(0, 4);
-    };
 
     return (
-        <div class="w-full flex flex-col items-center p-4 bg-black/90 rounded-lg sm:rounded-2xl">
-            <div class="w-full max-w-[1200px] bg-[#080808] p-3 sm:p-6 lg:p-10  shadow-terminal-lg border border-white/5 mb-2 sm:mb-10 overflow-hidden relative">
-                {/* Header Labels */}
-                <div class="grid grid-cols-[32px_54px_1fr_54px_54px] rounded-md sm:grid-cols-[40px_60px_1fr_60px_60px] gap-2 sm:gap-8 lg:gap-12 px-2 sm:px-6 lg:px-12 border-b border-terminal-gold/20 mt-4">
-                    <div class="w-[32px] sm:w-[40px]"></div> {/* AUD Column Space (Matches Row exactly) */}
-                    <FlightBoardHeaderLabel label="RANK" />
-                    <FlightBoardHeaderLabel label="TUNE" />
-                    <FlightBoardHeaderLabel label="RYTHM" />
-                    <FlightBoardHeaderLabel label="KEY" />
-                </div>
-
-
-                {/* Logged Dispatches (History) */}
-                <For each={historyLines()}>
-                    {(tune) => (
-                        <div class="group relative opacity-40 hover:opacity-100 transition-opacity">
-                            <FlightBoardLine
-                                tune={tune}
-                                rank={tune.globalRank}
-                                text={tune.name}
-                                type={contractTuneType(tune.type)}
-                                key={contractKey(tune.key)}
-                                isSpinning={false}
-                                isPlaying={playingId() === tune.id}
-                                onPlayToggle={(playing) => setPlayingId(playing ? tune.id : null)}
-                                onRemove={() => removeFromSet(tune.id)}
-                            />
+        <div class="w-full flex flex-col gap-12">
+            <Show when={lastDrawnSet().length > 0 || isSpinning()}>
+                <div class="flex flex-col gap-6">
+                    <div class="flex items-center justify-between px-2">
+                        <div class="flex items-center gap-3">
+                            <div class="size-2 rounded-full bg-brand-green animate-pulse"></div>
+                            <h3 class="text-lg font-black tracking-tight uppercase">Current Set</h3>
                         </div>
-                    )}
-                </For>
 
-                {/* Current Active Draw Set */}
-                <div class="pt-4 border-t border-white/5 space-y-1">
-                    <Show when={lastDrawnSet().length > 0 || isSpinning()} fallback={
-                        <FlightBoardLine
-                            text="AWAITING DISPATCH COORDINATES"
-                            type=""
-                            key=""
-                            rank=""
-                            isSpinning={false}
-                        />
-                    }>
+                        <div class="flex items-center gap-4">
+                            <Show when={!isSpinning()}>
+                                <button
+                                    onClick={resetDraw}
+                                    class="text-xs font-black uppercase tracking-widest text-ui-text/40 hover:text-red-500 transition-colors flex items-center gap-1"
+                                >
+                                    <span class="material-symbols-rounded text-lg">restart_alt</span>
+                                    <span>Start over</span>
+                                </button>
+
+                            </Show>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col bg-ui-surface/40 p-2 rounded-[32px] border border-ui-border/50 shadow-inner">
                         <For each={lastDrawnSet()}>
                             {(tune, index) => (
-                                <FlightBoardLine
+                                <TuneListItem
                                     tune={tune}
-                                    rank={tune.globalRank}
-                                    text={tune.name}
-                                    type={contractTuneType(tune.type)}
-                                    key={contractKey(tune.key)}
-                                    isSpinning={isSpinning() && settledCount() < index() + 1}
+                                    index={index()}
+                                    isLast={index() === lastDrawnSet().length - 1}
                                     isPlaying={playingId() === tune.id}
                                     onPlayToggle={(playing) => setPlayingId(playing ? tune.id : null)}
-                                    onRemove={() => removeFromLastSet(tune.id)}
                                 />
                             )}
                         </For>
 
-                        {/* "Add One More" Row / Spinning Placeholder for Expansion */}
-                        <Show when={lastDrawnSet().length > 0}>
-                            <Show when={!isSpinning()} fallback={
-                                /* Only show spinning placeholder if we are currently expanding (length > previous settled) */
-                                <Show when={settledCount() < lastDrawnSet().length}>
-                                    <FlightBoardLine
-                                        text="INITIALIZING NEXT STREAM..."
-                                        rank="----"
-                                        type="----"
-                                        key="----"
-                                        isSpinning={true}
-                                    />
-                                </Show>
-                            }>
-                                <FlightBoardLine
-                                    text="ADD ONE MORE"
-                                    rank="----"
-                                    type="----"
-                                    key="----"
-                                    isSpinning={false}
-                                    isPlusIcon={true}
-                                    variant="eggshell"
+                        <Show when={isSpinning()}>
+                            <div class="flex items-center gap-4 p-8 animate-pulse">
+                                <div class="animate-spin size-5 border-2 border-brand-green border-t-transparent rounded-full"></div>
+                                <span class="text-sm font-bold text-ui-text-muted italic">Selecting next tune...</span>
+                            </div>
+                        </Show>
+
+                        <Show when={lastDrawnSet().length > 0 && !isSpinning()}>
+                            <div class="p-4 flex justify-center border-t border-ui-border/30 mt-2">
+                                <button
                                     onClick={drawOneMore}
-                                />
-                            </Show>
+                                    class="text-xs font-black uppercase tracking-widest text-brand-green-dark hover:text-black transition-colors flex items-center gap-2 px-6 py-3 rounded-2xl hover:bg-brand-green"
+                                >
+                                    <span class="material-symbols-rounded text-lg">add</span>
+                                    <span>Extend Set</span>
+                                </button>
+                            </div>
                         </Show>
-
-                        {/* Placeholder rows during initial transition if data not yet chosen */}
-                        <Show when={isSpinning() && lastDrawnSet().length === 0}>
-                            <For each={[...Array(3)]}>
-                                {(tune, index) => (
-                                    <FlightBoardLine
-                                        text=""
-                                        type=""
-                                        key=""
-                                        rank=""
-                                        isSpinning={true}
-                                    />
-                                )}
-                            </For>
-                        </Show>
-                    </Show>
+                    </div>
                 </div>
+            </Show>
 
-                {/* Action Area (Compact) */}
-                <div class="min-h-[60px] flex flex-col items-center justify-center mt-4">
-                    <Show when={lastDrawnSet().length === 0 && !isSpinning()}>
-                        <div class="flex flex-col items-center gap-4 py-4">
-                            <span class="text-terminal-dim/40 font-mono text-[9px] animate-pulse tracking-[0.4em] uppercase">
-                                Terminal Offline // Awaiting Dispatch Parameters
-                            </span>
-                            <button
-                                onClick={handleOpenDispatcher}
-                                class="px-6 py-2 rounded-sm border border-terminal-gold/20 text-terminal-gold/60 font-mono text-[9px] uppercase tracking-[0.3em] hover:bg-terminal-gold/5 transition-all"
-                            >
-                                [ OPEN DISPATCHER ]
-                            </button>
-                        </div>
-                    </Show>
-
-                    <Show when={isSpinning()}>
-                        <div class="py-4">
-                            <span class="text-terminal-gold/40 font-mono text-[9px] animate-pulse tracking-[0.6em] uppercase">
-                                Synchronizing Regional Streams...
-                            </span>
-                        </div>
-                    </Show>
-                </div>
-
-                <div class="absolute bottom-4 right-10 text-[9px] font-mono text-terminal-gold/10 uppercase tracking-[1em]">
-                    Terminal Sector 7G // Security Level 4 // Encrypted Link
-                </div>
-            </div>
         </div>
     );
 }

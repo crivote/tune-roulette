@@ -132,23 +132,23 @@ function AudioPlayer(props) {
 
     return (
         <div class={`flex flex-col items-center ${props.minimal ? '' : 'gap-4 w-full'}`}>
-            {/* Custom Minimal Control */}
-            <Show when={props.minimal}>
-                <button
-                    onClick={togglePlay}
-                    class={`size-8 rounded-full flex items-center justify-center transition-all bg-terminal-gold text-black shadow-terminal-sm hover:scale-105 active:scale-95 ${props.isPlaying ? 'animate-pulse ring-4 ring-terminal-gold/20' : ''}`}
-                >
-                    <span class="material-symbols-outlined text-lg font-bold">
-                        {props.isPlaying ? 'stop' : 'play_arrow'}
-                    </span>
-                </button>
-            </Show>
+            {/* Custom Control */}
+            <button
+                onClick={togglePlay}
+                class={`rounded-full flex items-center justify-center transition-all bg-brand-green text-black 
+                    ${props.variant === 'compact' ? 'size-9 shadow-modern-xs' : 'size-12 shadow-modern-sm hover:scale-110'} 
+                    ${props.isPlaying ? 'ring-8 ring-brand-green/20 scale-95' : 'hover:shadow-brand-glow'} 
+                    active:scale-95`}
+            >
+                <span class={`material-symbols-rounded font-black ${props.variant === 'compact' ? 'text-lg' : 'text-2xl'}`}>
+                    {props.isPlaying ? 'stop' : 'play_arrow'}
+                </span>
+            </button>
 
-            {/* Default Controls area - Hidden in minimal mode but required for synth */}
+            {/* Default Controls area - Hidden but required for synth */}
             <div
                 id={`audio-player-${instanceId}`}
-                class={`w-full max-w-md bg-white/5 border border-white/10 rounded-lg p-2 ${props.minimal ? 'hidden' : ''}`}
-                style={{ "min-height": "40px" }}
+                class="hidden"
             ></div>
 
             {/* Sheet music - Hidden but rendered in DOM for internal calculations */}

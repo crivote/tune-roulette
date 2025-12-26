@@ -3,14 +3,13 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Lexend', sans-serif;
-  color-scheme: dark;
+  font-family: 'Outfit', sans-serif;
+  color-scheme: light;
 }
 
 body {
-  @apply bg-terminal-black text-terminal-white overflow-x-hidden;
+  @apply bg-ui-bg text-ui-text antialiased;
   margin: 0;
-  -webkit-font-smoothing: antialiased;
 }
 
 /* Hide Scrollbar */
@@ -20,102 +19,92 @@ body {
 
 body {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
-/* Global Animations */
-@keyframes grows {
-  from {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* Base Components */
+.glass-card {
+  @apply bg-ui-surface rounded-[40px] border border-ui-border shadow-modern-lg relative;
 }
 
-.animate-grows {
-  animation: grows 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.pill-selector {
+  @apply flex p-1.5 bg-ui-bg rounded-full border border-ui-border/50;
 }
 
-@keyframes flap {
+.pill-item {
+  @apply px-5 py-2.5 rounded-full text-sm font-semibold transition-all cursor-pointer whitespace-nowrap;
+}
+
+.pill-item.active {
+  @apply bg-brand-green text-ui-text shadow-sm;
+}
+
+.pill-item.inactive {
+  @apply text-ui-text-muted hover:text-ui-text hover:bg-ui-surface/50;
+}
+
+/* Animations */
+@keyframes soft-float {
   0% {
-    transform: rotateX(0deg);
+    transform: translateY(0px);
   }
 
   50% {
-    transform: rotateX(-90deg);
-    background: #333;
+    transform: translateY(-10px);
   }
 
   100% {
-    transform: rotateX(0deg);
+    transform: translateY(0px);
   }
 }
 
-.animate-flap {
-  animation: flap 0.1s infinite;
+.animate-float {
+  animation: soft-float 6s ease-in-out infinite;
 }
 
-.flight-board-char {
-  @apply flex items-center justify-center rounded-sm font-mono text-lg sm:text-xl w-[12px] sm:w-[14px] h-7 sm:h-9 border border-white/5 relative overflow-hidden flex-shrink-0;
-  background-color: #101616;
-  color: var(--char-color, #ffd700);
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9), 0 1px 0px rgba(255, 255, 255, 0.03);
-  text-shadow: 0 0 8px var(--char-shadow, rgba(255, 215, 0, 0.6)), 0 0 12px var(--char-shadow, rgba(255, 215, 0, 0.3));
+.filter-panel-transition {
+  @apply transition-all duration-300 ease-in-out overflow-hidden;
 }
 
-.char-space {
-  width: 6px !important;
-  background-color: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
+.filter-panel-open {
+  @apply max-h-[500px] opacity-100 mt-8 overflow-visible;
 }
 
-.char-space::after {
-  display: none !important;
+.filter-panel-closed {
+  @apply max-h-0 opacity-0 mt-0;
 }
 
-.variant-eggshell {
-  --char-color: #f0ead6;
-  --char-shadow: rgba(240, 234, 214, 1);
+/* Roll-up Transitions */
+.roll-up-transition {
+  @apply transition-all duration-700 ease-in-out overflow-hidden;
 }
 
-.flight-board-char::after {
-  content: "";
-  @apply absolute top-1/2 left-0 w-full h-[1px] bg-black/60 z-10;
-  box-shadow: 0 0.5px 0.5px rgba(255, 255, 255, 0.05);
+.roll-up-visible {
+  @apply max-h-[1000px] opacity-100;
 }
 
-@keyframes grow-in {
-  from {
-    transform: scale(0.8);
-    opacity: 0;
-  }
-
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+.roll-up-hidden {
+  @apply max-h-0 opacity-0 pointer-events-none;
 }
 
-.animate-grow-in {
-  animation: grow-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+/* Hero Title */
+.hero-title {
+  @apply text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-ui-text mb-6;
 }
 
-.glass-panel {
-  @apply bg-white/[0.03] backdrop-blur-md border border-white/10 rounded-2xl;
+.hero-subtitle {
+  @apply text-lg md:text-xl text-ui-text-muted font-medium max-w-2xl text-center mb-12;
 }
 
-.btn-terminal {
-  @apply bg-terminal-gold text-black px-10 py-4 rounded-full font-black text-xl transition-all shadow-terminal hover:scale-105 active:scale-95 hover:shadow-terminal-hover;
+/* Buttons */
+.btn-primary {
+  @apply bg-brand-green hover:bg-brand-green-dark text-black px-12 py-5 rounded-full font-bold text-xl transition-all shadow-modern-md hover:shadow-brand-glow hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-3;
 }
 
-.btn-outline-terminal {
-  @apply border-2 border-terminal-gold/30 text-terminal-gold px-10 py-4 rounded-full font-black text-xl hover:bg-terminal-gold/10 transition-all flex items-center gap-3;
+.btn-secondary {
+  @apply bg-ui-bg hover:bg-ui-surface border border-ui-border text-ui-text px-8 py-3 rounded-full font-bold text-base transition-all hover:shadow-modern-sm;
+}
+
+.fill-1 {
+  font-variation-settings: 'FILL' 1;
 }
