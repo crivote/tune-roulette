@@ -13,7 +13,7 @@ function PopularityBadge(props) {
     const tier = () => props.tier ?? 0;
 
     return (
-        <span class={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border ${config[tier()].class}`}>
+        <span class={`text-[8px] md:text-[10px] font-black uppercase tracking-widest px-1.5 md:px-2.5 py-0.5 md:py-1 rounded-full border ${config[tier()].class}`}>
             {config[tier()].label}
         </span>
     );
@@ -24,7 +24,7 @@ function TuneListItem(props) {
     const tier = createMemo(() => getTuneTier(props.tune));
 
     return (
-        <div class="group flex items-center gap-6 p-4 rounded-3xl border border-transparent hover:border-ui-border hover:bg-ui-surface transition-all animate__animated animate__fadeInUp">
+        <div class="group flex items-center gap-3 md:gap-6 p-3 md:p-4 rounded-2xl md:rounded-3xl hover:bg-black/5 transition-all animate__animated animate__fadeInUp">
             {/* Play Button */}
             <div class="flex-shrink-0">
                 <AudioPlayer
@@ -38,40 +38,38 @@ function TuneListItem(props) {
             </div>
 
             {/* Title & Metadata */}
-            <div class="flex-grow flex flex-col md:flex-row md:items-center gap-2 md:gap-6 overflow-hidden">
-                <div class="flex flex-col min-w-0 flex-grow">
-                    <h4 class="text-lg font-bold text-ui-text truncate">
+            <div class="flex-grow flex items-center justify-between min-w-0 gap-4">
+                <div class="flex flex-col min-w-0">
+                    <h4 class="text-base md:text-lg font-bold text-ui-text leading-tight">
                         <a
                             href={`https://thesession.org/tunes/${props.tune.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            class="hover:text-brand-green-dark transition-colors flex items-center gap-2 group/link"
+                            class="hover:text-brand-green-dark transition-colors flex items-center gap-2 group/link max-w-full"
                         >
-                            {props.tune.name}
-                            <span class="material-symbols-rounded text-base opacity-0 group-hover/link:opacity-100 transition-opacity translate-y-[1px]">open_in_new</span>
+                            <span class="truncate">{props.tune.name}</span>
+                            <span class="material-symbols-rounded text-base opacity-0 group-hover/link:opacity-100 transition-opacity translate-y-[1px] hidden md:inline flex-shrink-0">open_in_new</span>
                         </a>
                     </h4>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-black text-ui-text/40 uppercase tracking-widest whitespace-nowrap">
-                            {props.tune.type} • {props.tune.key}
-                        </span>
-                    </div>
+                    <span class="text-[9px] md:text-xs font-black text-ui-text/40 uppercase tracking-widest whitespace-nowrap">
+                        {props.tune.type} • {props.tune.key}
+                    </span>
                 </div>
 
                 <div class="flex-shrink-0 flex flex-col items-end gap-1">
                     <PopularityBadge tier={tier()} />
-                    <span class="text-[9px] font-black text-ui-text-muted/40 uppercase tracking-widest">
-                        #{props.tune.globalRank || '????'} // {props.tune.tunebooks || 0} books
+                    <span class="text-[8px] md:text-[9px] font-black text-ui-text-muted/30 uppercase tracking-widest whitespace-nowrap hidden sm:inline">
+                        #{props.tune.globalRank || '????'}
                     </span>
                 </div>
             </div>
 
             {/* Actions */}
-            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="flex items-center gap-0.5">
                     <button
                         onClick={() => moveTuneInLastSet(props.index, -1)}
-                        class="size-8 rounded-lg hover:bg-ui-bg flex items-center justify-center text-ui-text-muted hover:text-ui-text transition-colors"
+                        class="size-8 rounded-lg hover:bg-ui-bg flex items-center justify-center text-ui-text-muted hover:text-ui-text disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
                         title="Move Up"
                         disabled={props.index === 0}
                     >
@@ -79,7 +77,7 @@ function TuneListItem(props) {
                     </button>
                     <button
                         onClick={() => moveTuneInLastSet(props.index, 1)}
-                        class="size-8 rounded-lg hover:bg-ui-bg flex items-center justify-center text-ui-text-muted hover:text-ui-text transition-colors"
+                        class="size-8 rounded-lg hover:bg-ui-bg flex items-center justify-center text-ui-text-muted hover:text-ui-text disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
                         title="Move Down"
                         disabled={props.isLast}
                     >
@@ -87,14 +85,12 @@ function TuneListItem(props) {
                     </button>
                 </div>
 
-                <div class="h-8 w-px bg-ui-border mx-1"></div>
-
                 <button
                     onClick={() => removeFromLastSet(props.tune.id)}
-                    class="size-10 rounded-full hover:bg-red-50 flex items-center justify-center text-ui-text-muted hover:text-red-500 transition-all"
+                    class="size-9 rounded-full hover:bg-red-50 flex items-center justify-center text-ui-text-muted hover:text-red-500 transition-all ml-1"
                     title="Remove from Set"
                 >
-                    <span class="material-symbols-rounded text-xl">delete</span>
+                    <span class="material-symbols-rounded text-lg">delete</span>
                 </button>
             </div>
         </div>
@@ -106,9 +102,9 @@ function RouletteView() {
     const [playingId, setPlayingId] = createSignal(null);
 
     return (
-        <div class="w-full flex flex-col gap-12">
+        <div class="w-full flex flex-col gap-8 md:gap-12">
             <Show when={lastDrawnSet().length > 0 || isSpinning()}>
-                <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-4 md:gap-6">
                     <div class="flex items-center justify-between px-2">
                         <div class="flex items-center gap-3">
                             <div class="size-2 rounded-full bg-brand-green animate-pulse"></div>
@@ -129,7 +125,7 @@ function RouletteView() {
                         </div>
                     </div>
 
-                    <div class="flex flex-col bg-ui-surface/40 p-2 rounded-[32px] border border-ui-border/50 shadow-inner">
+                    <div class="flex flex-col bg-ui-surface/40 p-2 rounded-[32px]">
                         <For each={lastDrawnSet()}>
                             {(tune, index) => (
                                 <TuneListItem
@@ -142,15 +138,10 @@ function RouletteView() {
                             )}
                         </For>
 
-                        <Show when={isSpinning()}>
-                            <div class="flex items-center gap-4 p-8 animate-pulse">
-                                <div class="animate-spin size-5 border-2 border-brand-green border-t-transparent rounded-full"></div>
-                                <span class="text-sm font-bold text-ui-text-muted italic">Selecting next tune...</span>
-                            </div>
-                        </Show>
+
 
                         <Show when={lastDrawnSet().length > 0 && !isSpinning()}>
-                            <div class="p-4 flex justify-center border-t border-ui-border/30 mt-2">
+                            <div class="p-4 flex justify-center mt-2">
                                 <button
                                     onClick={drawOneMore}
                                     class="text-xs font-black uppercase tracking-widest text-brand-green-dark hover:text-black transition-colors flex items-center gap-2 px-6 py-3 rounded-2xl hover:bg-brand-green"

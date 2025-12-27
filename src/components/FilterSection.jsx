@@ -215,21 +215,17 @@ function FilterSection() {
                                 }}
                                 onFocus={() => setIsDropdownVisible(true)}
                                 placeholder="The Kesh Jig..."
-                                class="w-full bg-ui-bg border border-ui-border rounded-3xl px-8 py-5 text-lg font-medium text-ui-text-muted focus:outline-none focus:border-brand-green focus:text-ui-text transition-all"
+                                class="w-full bg-ui-bg border border-ui-border rounded-3xl px-6 md:px-8 py-4 md:py-5 text-lg font-medium text-ui-text-muted focus:outline-none focus:border-brand-green focus:text-ui-text transition-all"
                             />
 
                             <Show when={searchTerm() || seedTune()}>
                                 <button
                                     onClick={clearSearch}
-                                    class="absolute right-14 top-1/2 -translate-y-1/2 text-ui-text-muted hover:text-ui-text"
+                                    class="absolute right-6 top-1/2 -translate-y-1/2 text-ui-text-muted hover:text-ui-text"
                                 >
                                     <span class="material-symbols-rounded">close</span>
                                 </button>
                             </Show>
-
-                            <div class="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-ui-text-muted">
-                                <span class="material-symbols-rounded">keyboard_arrow_down</span>
-                            </div>
                         </div>
 
                         {/* Autocomplete Dropdown */}
@@ -255,34 +251,18 @@ function FilterSection() {
 
                     <button
                         onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen())}
-                        class={`flex items-center justify-center gap-2 px-8 py-5 rounded-3xl border font-bold transition-all whitespace-nowrap ${isFilterPanelOpen() ? 'bg-ui-text text-ui-surface border-ui-text' : 'bg-ui-surface text-ui-text border-ui-border hover:bg-ui-bg'}`}
+                        class={`flex items-center justify-center gap-2 px-6 md:px-8 py-4 md:py-5 rounded-3xl border font-bold transition-all whitespace-nowrap ${isFilterPanelOpen() ? 'bg-ui-text text-ui-surface border-ui-text' : 'bg-ui-surface text-ui-text border-ui-border hover:bg-ui-bg'}`}
                     >
                         <span class="material-symbols-rounded text-xl">tune</span>
                         <span>Filters</span>
                         <span class={`material-symbols-rounded transition-transform duration-300 ${isFilterPanelOpen() ? 'rotate-180' : ''}`}>expand_more</span>
                     </button>
                 </div>
-
-                <div class="flex items-center gap-4">
-                    <p class="text-sm text-brand-green-dark font-medium ml-2 min-h-[20px] flex-grow">
-                        {getStatusMessage()}
-                    </p>
-                    <Show when={seedTune() || searchTerm().length > 0 || typeFilter() !== 'all' || keyFilter() !== 'all' || popularityFilter() !== 'all'}>
-                        <button
-                            onClick={resetAll}
-                            class="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-ui-text-muted hover:text-red-500 transition-colors mr-2 p-1"
-                            title="Reset all filters"
-                        >
-                            <span class="material-symbols-rounded text-base">close</span>
-                            <span>Clear All</span>
-                        </button>
-                    </Show>
-                </div>
             </div>
 
-            {/* Slide-down Filter Panel */}
-            <div class={`filter-panel-transition ${isFilterPanelOpen() ? 'filter-panel-open' : 'filter-panel-closed'}`}>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 bg-ui-bg border border-ui-border rounded-[32px]">
+            {/* Slide-down Filter Panel - Positioned immediately below row */}
+            <div class={`filter-panel-transition ${isFilterPanelOpen() ? 'filter-panel-open-tight' : 'filter-panel-closed'}`}>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 md:py-6">
                     <FilterDropdown
                         label="Rhythm"
                         value={typeFilter()}
@@ -305,11 +285,29 @@ function FilterSection() {
             </div>
 
             {/* Action Button & Mode Switch */}
-            <div class="flex flex-col items-center mt-12 gap-6">
+            <div class="flex flex-col items-center mt-6 md:mt-8 gap-8">
+
+                {/* Status Message Text - Now on top of the button */}
+                <div class="flex flex-col items-center gap-3">
+                    <p class="text-sm text-brand-green-dark font-black tracking-tight uppercase text-center min-h-[20px] animate__animated animate__fadeIn">
+                        {getStatusMessage()}
+                    </p>
+                    <Show when={seedTune() || searchTerm().length > 0 || typeFilter() !== 'all' || keyFilter() !== 'all' || popularityFilter() !== 'all'}>
+                        <button
+                            onClick={resetAll}
+                            class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-ui-text-muted hover:text-red-500 transition-colors py-1 px-3 bg-ui-bg rounded-full border border-ui-border/50"
+                            title="Reset all filters"
+                        >
+                            <span class="material-symbols-rounded text-xs">close</span>
+                            <span>Clear Selection</span>
+                        </button>
+                    </Show>
+                </div>
+
                 <button
                     disabled={isSpinning()}
                     onClick={handleInitiate}
-                    class="btn-primary w-full md:w-auto"
+                    class="btn-primary w-full md:w-auto shadow-brand-glow"
                 >
                     <Show when={isSpinning()} fallback={
                         <>
@@ -324,16 +322,35 @@ function FilterSection() {
 
                 {/* Creative Mode Switch */}
                 <div class="flex flex-col items-center gap-3">
-                    <span class="text-[9px] font-black uppercase tracking-widest text-ui-text/30">Set Cohesion</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-black uppercase tracking-widest text-ui-text/30">Set Cohesion</span>
+                        <div class="group relative">
+                            <span class="material-symbols-rounded text-sm text-ui-text/20 cursor-help">info</span>
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-3 bg-black text-white text-[10px] rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] font-medium leading-relaxed shadow-xl">
+                                Determines how similar the subsequent tunes will be to the current one.
+                                <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="flex items-center bg-ui-bg p-1 rounded-2xl border border-ui-border shadow-sm">
-                        <For each={['strict', 'medium', 'creative']}>
+                        <For each={[
+                            { id: 'strict', label: 'Strict', tip: 'Maximum cohesion. Similar types and common transitions.' },
+                            { id: 'medium', label: 'Medium', tip: 'Balanced variety. Familiar links with occasional surprises.' },
+                            { id: 'creative', label: 'Creative', tip: 'Full library. Maximum variety and unexpected combinations.' }
+                        ]}>
                             {(mode) => (
-                                <button
-                                    onClick={() => setCreativeMode(mode)}
-                                    class={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${creativeMode() === mode ? 'bg-ui-surface text-brand-green-dark shadow-sm border border-ui-border' : 'text-ui-text/30 hover:text-ui-text'}`}
-                                >
-                                    {mode}
-                                </button>
+                                <div class="group relative">
+                                    <button
+                                        onClick={() => setCreativeMode(mode.id)}
+                                        class={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${creativeMode() === mode.id ? 'bg-ui-surface text-brand-green-dark shadow-sm border border-ui-border' : 'text-ui-text/30 hover:text-ui-text'}`}
+                                    >
+                                        {mode.label}
+                                    </button>
+                                    <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-32 p-2 bg-black text-white text-[9px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] font-bold text-center">
+                                        {mode.tip}
+                                        <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black"></div>
+                                    </div>
+                                </div>
                             )}
                         </For>
                     </div>

@@ -24,7 +24,7 @@ body {
 
 /* Base Components */
 .glass-card {
-  @apply bg-ui-surface rounded-[40px] border border-ui-border shadow-modern-lg relative;
+  @apply bg-ui-surface rounded-[32px] md:rounded-[40px] border border-ui-border shadow-modern-lg relative;
 }
 
 .pill-selector {
@@ -58,6 +58,20 @@ body {
   }
 }
 
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
 .animate-float {
   animation: soft-float 6s ease-in-out infinite;
 }
@@ -68,6 +82,10 @@ body {
 
 .filter-panel-open {
   @apply max-h-[500px] opacity-100 mt-8 overflow-visible;
+}
+
+.filter-panel-open-tight {
+  @apply max-h-[500px] opacity-100 mt-2 overflow-visible;
 }
 
 .filter-panel-closed {
@@ -89,16 +107,22 @@ body {
 
 /* Hero Title */
 .hero-title {
-  @apply text-6xl md:text-8xl font-black tracking-tight leading-[0.9] text-ui-text mb-6;
+  @apply text-5xl md:text-8xl font-black tracking-tight leading-[0.9] mb-6 w-fit mx-auto;
+  background: linear-gradient(135deg, #000000, #00d161, #00fb73, #000000);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 8s ease inset infinite;
 }
 
 .hero-subtitle {
-  @apply text-lg md:text-xl text-ui-text-muted font-medium max-w-2xl text-center mb-12;
+  @apply text-base md:text-xl text-ui-text-muted font-medium max-w-2xl text-center mb-6 md:mb-12;
 }
 
 /* Buttons */
 .btn-primary {
-  @apply bg-brand-green hover:bg-brand-green-dark text-black px-12 py-5 rounded-full font-bold text-xl transition-all shadow-modern-md hover:shadow-brand-glow hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-3;
+  @apply bg-brand-green hover:bg-brand-green-dark text-black px-8 md:px-12 py-4 md:py-5 rounded-full font-bold text-lg md:text-xl transition-all shadow-modern-md hover:shadow-brand-glow hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-3;
 }
 
 .btn-secondary {

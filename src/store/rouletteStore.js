@@ -119,7 +119,12 @@ export function useRouletteStore() {
         const tieredPool = typePool.filter(t => tiers.includes(getTuneTier(t)));
 
         if (mode === 'strict') {
-            return tieredPool.filter(t => t.key === primaryKey);
+            let matches = tieredPool.filter(t => t.key === primaryKey);
+            if (matches.length === 0) {
+                const related = getRelatedKeys(primaryKey);
+                matches = tieredPool.filter(t => related.includes(t.key));
+            }
+            return matches;
         }
 
         if (mode === 'creative') {
@@ -265,7 +270,7 @@ export function useRouletteStore() {
         if (candidates.length > 0) {
             const newTune = candidates[Math.floor(Math.random() * candidates.length)];
             setLastDrawnSet(prev => [...prev, newTune]);
-            await new Promise(resolve => setTimeout(resolve, 1500));
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
 
         setIsSpinning(false);
