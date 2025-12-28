@@ -17,6 +17,9 @@ const [lastDrawnSet, setLastDrawnSet] = createSignal([]);
 const [seedTune, setSeedTune] = createSignal(null);
 const [isResultsClosing, setIsResultsClosing] = createSignal(false);
 const [favorites, setFavorites] = createSignal(JSON.parse(localStorage.getItem('folk_favorites') || '[]'));
+const [savedSets, setSavedSets] = createSignal(JSON.parse(localStorage.getItem('folk_collections') || '[]'));
+const [activeSetId, setActiveSetId] = createSignal(null);
+const [currentSetTitle, setCurrentSetTitle] = createSignal('New set');
 let fuseInstance = null;
 
 export function useRouletteStore() {
@@ -234,7 +237,7 @@ export function useRouletteStore() {
         }
 
         setLastDrawnSet(finalSet);
-        await new Promise(resolve => setTimeout(resolve, 3500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         setIsSpinning(false);
         return finalSet;
     };
@@ -329,14 +332,64 @@ export function useRouletteStore() {
 
     const resetDraw = async () => {
         const current = lastDrawnSet();
-        if (current.length > 0) {
+        if (current.length > 0 && !activeSetId()) {
             addToSet(current);
         }
         setIsResultsClosing(true);
         // Wait for the roll-up animation to complete (matching duration-700)
         await new Promise(r => setTimeout(r, 700));
         setLastDrawnSet([]);
+        setActiveSetId(null);
+        setCurrentSetTitle('New set');
         setIsResultsClosing(false);
+    };
+
+    const saveCurrentSet = () => {
+        const id = crypto.randomUUID();
+        const newSet = {
+            id,
+            title: currentSetTitle(),
+            date: new Date().toISOString(),
+            tunes: [...lastDrawnSet()]
+        };
+        const updated = [newSet, ...savedSets()];
+        setSavedSets(updated);
+        localStorage.setItem('folk_collections', JSON.stringify(updated));
+        setActiveSetId(id);
+    };
+
+    const updateCurrentSet = () => {
+        const id = activeSetId();
+        if (!id) return;
+        const updated = savedSets().map(s =>
+            s.id === id
+                ? { ...s, title: currentSetTitle(), tunes: [...lastDrawnSet()], date: new Date().toISOString() }
+                : s
+        );
+        setSavedSets(updated);
+        localStorage.setItem('folk_collections', JSON.stringify(updated));
+    };
+
+    const deleteSet = (id) => {
+        const updated = savedSets().filter(s => s.id !== id);
+        setSavedSets(updated);
+        localStorage.setItem('folk_collections', JSON.stringify(updated));
+        if (activeSetId() === id) {
+            setActiveSetId(null);
+            setCurrentSetTitle('New set');
+        }
+    };
+
+    const loadSet = (id) => {
+        const set = savedSets().find(s => s.id === id);
+        if (!set) return;
+
+        // If there was something else, move it to history maybe? 
+        // For simplicity, let's just replace as per requirements
+        setLastDrawnSet([...set.tunes]);
+        setActiveSetId(set.id);
+        setCurrentSetTitle(set.title);
+        setIsResultsClosing(false); // Ensure it's visible
     };
 
     const resetAll = () => {
@@ -406,6 +459,8 @@ export function useRouletteStore() {
         seedTune, setSeedTune, isResultsClosing,
         creativeMode, setCreativeMode,
         favorites, toggleFavorite, isFavorite,
+        savedSets, activeSetId, currentSetTitle, setCurrentSetTitle,
+        saveCurrentSet, updateCurrentSet, deleteSet, loadSet,
         searchTunes: (term) => fuseInstance ? fuseInstance.search(term).slice(0, 10).map(r => r.item) : []
     };
 }
